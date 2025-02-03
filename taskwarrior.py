@@ -70,7 +70,8 @@ class TaskWarrior:
                     'priority': [],
                     'project': [],
                     'description': [],
-                    'id': []
+                    'id': [],
+                    'urgency': []
                 })
 
             tasks = json.loads(output)
@@ -80,7 +81,8 @@ class TaskWarrior:
                     'priority': [],
                     'project': [],
                     'description': [],
-                    'id': []
+                    'id': [],
+                    'urgency': []
                 })
 
             df = pd.DataFrame(tasks)
@@ -91,7 +93,8 @@ class TaskWarrior:
                 'priority': 'None',
                 'project': 'None',
                 'description': '',
-                'id': None
+                'id': None,
+                'urgency': 0.0
             }
 
             for col, default in required_columns.items():
@@ -106,7 +109,8 @@ class TaskWarrior:
                 'priority': [],
                 'project': [],
                 'description': [],
-                'id': []
+                'id': [],
+                'urgency': []
             })
 
     def add_task(self, description: str, priority: Optional[str] = None, 

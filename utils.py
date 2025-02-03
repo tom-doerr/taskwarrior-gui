@@ -19,13 +19,15 @@ def create_task_card(task: Dict[str, Any]) -> None:
     with st.container():
         cols = st.columns([3, 1, 1, 1])
 
-        # Task description and priority
+        # Task description, priority, and urgency
         with cols[0]:
             priority = format_priority(task.get('priority', 'None'))
             priority_color = get_priority_color(priority)
+            urgency = task.get('urgency', 0.0)
             st.markdown(
                 f"<div style='display: flex; align-items: center; gap: 10px;'>"
                 f"<span style='color: {priority_color}; font-weight: bold; min-width: 30px;'>[{priority}]</span>"
+                f"<span style='color: #666; font-weight: bold;'>(U: {urgency:.1f})</span>"
                 f"<span><b>{task.get('description', '')}</b></span>"
                 f"</div>",
                 unsafe_allow_html=True
