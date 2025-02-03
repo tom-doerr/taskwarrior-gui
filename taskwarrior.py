@@ -61,7 +61,8 @@ class TaskWarrior:
 
     def get_tasks(self, filter_str: str = "") -> pd.DataFrame:
         try:
-            args = ["export"] + filter_str.split()
+            # Use 'export rc.json.array=on rc.verbose=nothing' to get all task attributes
+            args = ["export", "rc.json.array=on", "rc.verbose=nothing"] + filter_str.split()
             output = self._run_command(args, timeout=60)  # Longer timeout for export
 
             if not output.strip():
@@ -100,6 +101,10 @@ class TaskWarrior:
             for col, default in required_columns.items():
                 if col not in df.columns:
                     df[col] = default
+
+            # Convert urgency to float
+            if 'urgency' in df.columns:
+                df['urgency'] = pd.to_numeric(df['urgency'], errors='coerce').fillna(0.0)
 
             return df
         except Exception as e:
