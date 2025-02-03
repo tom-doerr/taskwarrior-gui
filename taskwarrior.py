@@ -61,15 +61,29 @@ class TaskWarrior:
 
     def get_tasks(self, filter_str: str = "") -> pd.DataFrame:
         try:
-            # First calculate urgency for all tasks
-            self._run_command(["rc.urgency.user.tag.next.coefficient=0", "stats"])
+            # First calculate urgency for all tasks with proper coefficients
+            self._run_command([
+                "rc.urgency.user.tag.next.coefficient=15.0",
+                "rc.urgency.due.coefficient=12.0",
+                "rc.urgency.blocking.coefficient=8.0",
+                "rc.urgency.priority.coefficient=6.0",
+                "rc.urgency.scheduled.coefficient=5.0",
+                "rc.urgency.active.coefficient=4.0",
+                "rc.urgency.annotations.coefficient=1.0",
+                "rc.urgency.tags.coefficient=1.0",
+                "rc.urgency.project.coefficient=1.0",
+                "rc.urgency.waiting.coefficient=-3.0",
+                "rc.urgency.blocked.coefficient=-5.0",
+                "stats"
+            ])
 
             # Use export with proper configuration to get all attributes including urgency
             args = [
                 "export",
                 "rc.json.array=on",
-                "rc.verbose=label",
-                "rc.debug=1"
+                "rc.verbose=nothing",
+                "rc.report.next.columns=id,description,urgency,priority,project,due",
+                "rc.report.next.labels=ID,Description,Urgency,Priority,Project,Due"
             ] + filter_str.split()
 
             output = self._run_command(args, timeout=60)  # Longer timeout for export
