@@ -61,8 +61,17 @@ class TaskWarrior:
 
     def get_tasks(self, filter_str: str = "") -> pd.DataFrame:
         try:
-            # Use 'export rc.json.array=on rc.verbose=nothing' to get all task attributes
-            args = ["export", "rc.json.array=on", "rc.verbose=nothing"] + filter_str.split()
+            # First calculate urgency for all tasks
+            self._run_command(["rc.urgency.user.tag.next.coefficient=0", "stats"])
+
+            # Use export with proper configuration to get all attributes including urgency
+            args = [
+                "export",
+                "rc.json.array=on",
+                "rc.verbose=label",
+                "rc.debug=1"
+            ] + filter_str.split()
+
             output = self._run_command(args, timeout=60)  # Longer timeout for export
 
             if not output.strip():
@@ -102,7 +111,7 @@ class TaskWarrior:
                 if col not in df.columns:
                     df[col] = default
 
-            # Convert urgency to float
+            # Convert urgency to float and ensure it's not NaN
             if 'urgency' in df.columns:
                 df['urgency'] = pd.to_numeric(df['urgency'], errors='coerce').fillna(0.0)
 
