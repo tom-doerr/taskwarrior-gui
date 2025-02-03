@@ -24,8 +24,8 @@ with st.sidebar:
     # Task input form
     with st.form("new_task_form", clear_on_submit=True):
         description = st.text_input("Description", key="description")
-        priority = st.selectbox("Priority", ["None", "H", "M", "L"], key="priority")
-        project = st.text_input("Project", key="project")
+        priority = st.selectbox("Priority (optional)", ["", "H", "M", "L"], key="priority")
+        project = st.text_input("Project (optional)", key="project")
 
         submitted = st.form_submit_button("Add Task")
         if submitted:
@@ -36,13 +36,13 @@ with st.sidebar:
                     try:
                         st.session_state.task_warrior.add_task(
                             description,
-                            priority if priority != "None" else None,
+                            priority if priority else None,
                             project if project else None
                         )
                         st.success("Task added successfully!")
                         # Clear the form fields
                         st.session_state.description = ""
-                        st.session_state.priority = "None"
+                        st.session_state.priority = ""
                         st.session_state.project = ""
                     except Exception as e:
                         st.error(f"Error adding task: {str(e)}")

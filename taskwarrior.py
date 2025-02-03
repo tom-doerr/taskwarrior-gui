@@ -115,9 +115,9 @@ class TaskWarrior:
             raise ValueError("Description is required")
 
         args = ["add", description]
-        if priority:
+        if priority and priority.strip():  # Only add if priority is not empty
             args.extend(["priority:", priority])
-        if project:
+        if project and project.strip():  # Only add if project is not empty
             args.extend(["project:", project])
         self._run_command(args)
 
