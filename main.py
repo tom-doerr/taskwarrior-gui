@@ -57,9 +57,16 @@ with col2:
     priority_filter = st.selectbox("Priority", ["All", "H", "M", "L", "None"])
 with col3:
     # Get unique projects
-    tasks_df = st.session_state.task_warrior.get_tasks()
-    projects = ["All"] + sorted(pd.unique([p for p in tasks_df['project'].unique() if p != "None"]).tolist() + ["None"])
-    project_filter = st.selectbox("Project", projects)
+    try:
+        tasks_df = st.session_state.task_warrior.get_tasks()
+        if not tasks_df.empty:
+            projects = ["All"] + sorted([p for p in tasks_df['project'].unique() if p and p != "None"]) + ["None"]
+        else:
+            projects = ["All", "None"]
+        project_filter = st.selectbox("Project", projects)
+    except Exception as e:
+        st.error(f"Error loading projects: {str(e)}")
+        project_filter = "All"
 
 # Get and filter tasks
 try:

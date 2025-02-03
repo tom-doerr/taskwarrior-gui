@@ -1,30 +1,56 @@
 import subprocess
 import json
 import pandas as pd
+import os
 from typing import List, Dict, Optional
 
 class TaskWarrior:
     def __init__(self):
         self.command = "task"
-        # Test if task command exists
+        # Test if task command exists and initialize if needed
         try:
-            subprocess.run([self.command, "--version"], capture_output=True, timeout=5)
+            # First check if task exists
+            result = subprocess.run([self.command, "--version"], 
+                                  capture_output=True, 
+                                  text=True,
+                                  timeout=30)
+            if result.returncode != 0:
+                raise Exception("TaskWarrior not properly installed")
+
+            # Initialize config if needed
+            home = os.path.expanduser("~")
+            taskrc = os.path.join(home, ".taskrc")
+            if not os.path.exists(taskrc):
+                # Create empty taskrc file
+                with open(taskrc, 'w') as f:
+                    f.write("# TaskWarrior config file\n")
+
+                # Run task version to trigger first-time setup
+                subprocess.run([self.command, "version"], 
+                             capture_output=True,
+                             timeout=30)
+
         except FileNotFoundError:
             raise Exception("TaskWarrior is not installed. Please install it first.")
+        except subprocess.TimeoutExpired:
+            raise Exception("TaskWarrior initialization timed out. Please try again.")
         except Exception as e:
             raise Exception(f"Error initializing TaskWarrior: {str(e)}")
 
-    def _run_command(self, args: List[str]) -> str:
+    def _run_command(self, args: List[str], timeout: int = 30) -> str:
         try:
             result = subprocess.run(
                 [self.command] + args,
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=10  # Add timeout
+                timeout=timeout  # Default 30 second timeout
             )
             return result.stdout
         except subprocess.TimeoutExpired:
+            if "export" in args:
+                # Return empty list for export timeouts
+                return "[]"
             raise Exception("Command timed out. Please try again.")
         except subprocess.CalledProcessError as e:
             if "No matches." in e.stderr:
@@ -34,31 +60,54 @@ class TaskWarrior:
             raise Exception(f"Unexpected error: {str(e)}")
 
     def get_tasks(self, filter_str: str = "") -> pd.DataFrame:
-        args = ["export"] + filter_str.split()
-        output = self._run_command(args)
+        try:
+            args = ["export"] + filter_str.split()
+            output = self._run_command(args, timeout=60)  # Longer timeout for export
 
-        if not output.strip():
-            return pd.DataFrame()
+            if not output.strip():
+                return pd.DataFrame({
+                    'status': [],
+                    'priority': [],
+                    'project': [],
+                    'description': [],
+                    'id': []
+                })
 
-        tasks = json.loads(output)
-        if not tasks:
-            return pd.DataFrame()
+            tasks = json.loads(output)
+            if not tasks:
+                return pd.DataFrame({
+                    'status': [],
+                    'priority': [],
+                    'project': [],
+                    'description': [],
+                    'id': []
+                })
 
-        df = pd.DataFrame(tasks)
+            df = pd.DataFrame(tasks)
 
-        # Convert status to pending if not present
-        if 'status' not in df.columns:
-            df['status'] = 'pending'
+            # Ensure required columns exist
+            required_columns = {
+                'status': 'pending',
+                'priority': 'None',
+                'project': 'None',
+                'description': '',
+                'id': None
+            }
 
-        # Add priority if not present
-        if 'priority' not in df.columns:
-            df['priority'] = 'None'
+            for col, default in required_columns.items():
+                if col not in df.columns:
+                    df[col] = default
 
-        # Add project if not present
-        if 'project' not in df.columns:
-            df['project'] = 'None'
-
-        return df
+            return df
+        except Exception as e:
+            print(f"Error in get_tasks: {str(e)}")
+            return pd.DataFrame({
+                'status': [],
+                'priority': [],
+                'project': [],
+                'description': [],
+                'id': []
+            })
 
     def add_task(self, description: str, priority: Optional[str] = None, 
                  project: Optional[str] = None) -> None:
