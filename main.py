@@ -14,10 +14,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Title
-st.title("TaskWarrior GUI")
-
-# Sidebar - Add New Task
+# Sidebar - Add New Task and Filters
 with st.sidebar:
     st.header("Add New Task")
 
@@ -47,15 +44,11 @@ with st.sidebar:
                     except Exception as e:
                         st.error(f"Error adding task: {str(e)}")
 
-# Main content
-# Filters
-col1, col2, col3 = st.columns(3)
-
-with col1:
+    # Filters section
+    st.header("Filters")
     status_filter = st.selectbox("Status", ["All", "Pending", "Completed"])
-with col2:
     priority_filter = st.selectbox("Priority", ["All", "H", "M", "L", "None"])
-with col3:
+
     # Get unique projects
     try:
         tasks_df = st.session_state.task_warrior.get_tasks()
@@ -68,7 +61,7 @@ with col3:
         st.error(f"Error loading projects: {str(e)}")
         project_filter = "All"
 
-# Get and filter tasks
+# Main content - Tasks display
 try:
     tasks_df = st.session_state.task_warrior.get_tasks()
     filtered_df = filter_tasks(tasks_df, status_filter, priority_filter, project_filter)
