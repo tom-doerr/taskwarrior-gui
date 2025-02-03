@@ -20,15 +20,33 @@ class TaskWarrior:
             # Initialize config if needed
             home = os.path.expanduser("~")
             taskrc = os.path.join(home, ".taskrc")
-            if not os.path.exists(taskrc):
-                # Create empty taskrc file
-                with open(taskrc, 'w') as f:
-                    f.write("# TaskWarrior config file\n")
+            task_dir = os.path.join(home, ".task")
 
-                # Run task version to trigger first-time setup
-                subprocess.run([self.command, "version"], 
-                             capture_output=True,
-                             timeout=30)
+            # Create directories if they don't exist
+            if not os.path.exists(task_dir):
+                os.makedirs(task_dir, mode=0o700)
+
+            if not os.path.exists(taskrc):
+                # Create taskrc with urgency settings
+                with open(taskrc, 'w') as f:
+                    f.write("""# TaskWarrior config file
+urgency.user.tag.next.coefficient=15.0
+urgency.due.coefficient=12.0
+urgency.blocking.coefficient=8.0
+urgency.priority.coefficient=6.0
+urgency.scheduled.coefficient=5.0
+urgency.active.coefficient=4.0
+urgency.annotations.coefficient=1.0
+urgency.tags.coefficient=1.0
+urgency.project.coefficient=1.0
+urgency.waiting.coefficient=-3.0
+urgency.blocked.coefficient=-5.0
+""")
+
+            # Run task version to trigger first-time setup
+            subprocess.run([self.command, "version"], 
+                         capture_output=True,
+                         timeout=30)
 
         except FileNotFoundError:
             raise Exception("TaskWarrior is not installed. Please install it first.")
@@ -61,29 +79,11 @@ class TaskWarrior:
 
     def get_tasks(self, filter_str: str = "") -> pd.DataFrame:
         try:
-            # First calculate urgency for all tasks with proper coefficients
-            self._run_command([
-                "rc.urgency.user.tag.next.coefficient=15.0",
-                "rc.urgency.due.coefficient=12.0",
-                "rc.urgency.blocking.coefficient=8.0",
-                "rc.urgency.priority.coefficient=6.0",
-                "rc.urgency.scheduled.coefficient=5.0",
-                "rc.urgency.active.coefficient=4.0",
-                "rc.urgency.annotations.coefficient=1.0",
-                "rc.urgency.tags.coefficient=1.0",
-                "rc.urgency.project.coefficient=1.0",
-                "rc.urgency.waiting.coefficient=-3.0",
-                "rc.urgency.blocked.coefficient=-5.0",
-                "stats"
-            ])
-
-            # Use export with proper configuration to get all attributes including urgency
+            # Use export command with rc.json.array=on to get all tasks with their attributes
             args = [
                 "export",
                 "rc.json.array=on",
-                "rc.verbose=nothing",
-                "rc.report.next.columns=id,description,urgency,priority,project,due",
-                "rc.report.next.labels=ID,Description,Urgency,Priority,Project,Due"
+                "rc.verbose=nothing"
             ] + filter_str.split()
 
             output = self._run_command(args, timeout=60)  # Longer timeout for export
@@ -109,7 +109,31 @@ class TaskWarrior:
                     'urgency': []
                 })
 
+            # Convert to DataFrame
             df = pd.DataFrame(tasks)
+
+            # Calculate urgency based on TaskWarrior's coefficients
+            def calculate_urgency(row):
+                urgency = 0.0
+
+                # Priority coefficient (6.0)
+                if 'priority' in row and row['priority']:
+                    priority_scores = {'H': 6.0, 'M': 3.9, 'L': 1.8}
+                    urgency += priority_scores.get(row['priority'], 0.0)
+
+                # Project coefficient (1.0)
+                if 'project' in row and row['project']:
+                    urgency += 1.0
+
+                # Due date coefficient (12.0)
+                if 'due' in row and row['due']:
+                    urgency += 12.0
+
+                # Tags coefficient (1.0)
+                if 'tags' in row and row['tags']:
+                    urgency += len(row['tags'])
+
+                return urgency
 
             # Ensure required columns exist
             required_columns = {
@@ -117,17 +141,15 @@ class TaskWarrior:
                 'priority': 'None',
                 'project': 'None',
                 'description': '',
-                'id': None,
-                'urgency': 0.0
+                'id': None
             }
 
             for col, default in required_columns.items():
                 if col not in df.columns:
                     df[col] = default
 
-            # Convert urgency to float and ensure it's not NaN
-            if 'urgency' in df.columns:
-                df['urgency'] = pd.to_numeric(df['urgency'], errors='coerce').fillna(0.0)
+            # Calculate urgency for each task
+            df['urgency'] = df.apply(calculate_urgency, axis=1)
 
             return df
         except Exception as e:
