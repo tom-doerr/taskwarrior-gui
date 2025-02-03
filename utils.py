@@ -18,22 +18,24 @@ def get_priority_color(priority: str) -> str:
 def create_task_card(task: Dict[str, Any]) -> None:
     with st.container():
         cols = st.columns([3, 1, 1, 1])
-        
-        # Task description
+
+        # Task description and priority
         with cols[0]:
-            st.markdown(f"**{task.get('description', '')}**")
-            
-        # Priority
-        with cols[1]:
             priority = format_priority(task.get('priority', 'None'))
-            st.markdown(f"<span style='color: {get_priority_color(priority)}'>{priority}</span>",
-                       unsafe_allow_html=True)
-            
+            priority_color = get_priority_color(priority)
+            st.markdown(
+                f"<div style='display: flex; align-items: center; gap: 10px;'>"
+                f"<span style='color: {priority_color}; font-weight: bold; min-width: 30px;'>[{priority}]</span>"
+                f"<span><b>{task.get('description', '')}</b></span>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
         # Project
         with cols[2]:
             project = task.get('project', 'None')
             st.text(project if project else 'None')
-            
+
         # Actions
         with cols[3]:
             task_id = task.get('id')
