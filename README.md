@@ -5,11 +5,22 @@ A modern, intuitive Streamlit-based graphical interface for TaskWarrior that pro
 ## Features
 
 - 📊 Clean, modern interface for TaskWarrior
-- 🔍 Dynamic filtering by status, priority, and project
+- 🔍 Dynamic filtering:
+  - Filter by status (Pending/Completed)
+  - Filter by priority (High/Medium/Low)
+  - Filter by project
 - 📈 Real-time task urgency calculation and display
-- ✨ Easy task creation with priority and project assignment
-- 🎯 One-click task completion
+- ✨ Task management:
+  - Easy task creation with descriptions
+  - Priority assignment (High/Medium/Low)
+  - Project organization
+  - One-click task completion
 - 📱 Responsive design that works on both desktop and mobile
+- 🎨 Clean and intuitive user interface with:
+  - Color-coded priorities
+  - Project grouping
+  - Urgency scores
+  - Task status indicators
 
 ## Installation
 
@@ -17,9 +28,11 @@ A modern, intuitive Streamlit-based graphical interface for TaskWarrior that pro
    ```bash
    # For Ubuntu/Debian
    sudo apt-get install taskwarrior
-   
+
    # For macOS
    brew install task
+
+   # For other systems, visit: https://taskwarrior.org/download/
    ```
 
 2. Clone this repository:
@@ -30,6 +43,8 @@ A modern, intuitive Streamlit-based graphical interface for TaskWarrior that pro
 
 3. Install Python dependencies:
    ```bash
+   pip install -r requirements.txt
+   # or
    pip install streamlit pandas
    ```
 
@@ -40,16 +55,30 @@ A modern, intuitive Streamlit-based graphical interface for TaskWarrior that pro
    streamlit run main.py
    ```
 
-2. Open your browser and navigate to the displayed URL (typically http://localhost:8501)
+2. Open your browser and navigate to the displayed URL (typically http://localhost:5000)
 
-3. Use the sidebar to:
-   - Add new tasks with descriptions, priorities, and projects
-   - Filter tasks by status, priority, and project
+3. Using the interface:
+   - **Adding Tasks**: Use the sidebar form to add new tasks
+   - **Task Properties**:
+     - Description (required)
+     - Priority (optional: High/Medium/Low)
+     - Project (optional)
+   - **Filtering**: Use the sidebar filters to sort and filter tasks
+   - **Task Actions**: Complete tasks with one click using the action buttons
 
-4. In the main view:
-   - See all your tasks with their urgency scores
-   - Complete tasks with one click
-   - View task details including projects and priorities
+## Troubleshooting
+
+1. **TaskWarrior Not Found**:
+   - Ensure TaskWarrior is installed and accessible from command line
+   - Try running `task version` to verify installation
+
+2. **Permission Issues**:
+   - Ensure TaskWarrior configuration directory exists: `~/.task/`
+   - Check file permissions: `chmod -R 700 ~/.task/`
+
+3. **Display Issues**:
+   - Try clearing your browser cache
+   - Ensure you're using a modern web browser
 
 ## Dependencies
 
@@ -60,17 +89,33 @@ A modern, intuitive Streamlit-based graphical interface for TaskWarrior that pro
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Here's how you can help:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Submit a pull request
+
+Please ensure your PR:
+- Includes a clear description of the changes
+- Updates documentation as needed
+- Follows the existing code style
+- Includes tests if applicable
+
+## Screenshots
+
+[Coming Soon]
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Screenshot
-
-[Screenshot to be added]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
 - TaskWarrior team for their excellent task management tool
 - Streamlit team for their amazing framework
+- All contributors who help improve this project
+
+---
+Made with ❤️ by the TaskWarrior GUI Contributors
