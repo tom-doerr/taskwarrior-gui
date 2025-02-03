@@ -79,7 +79,6 @@ try:
         # Display tasks
         for _, task in filtered_df.iterrows():
             create_task_card(task)
-            st.divider()
 
 except Exception as e:
     st.error(f"Error loading tasks: {str(e)}")
